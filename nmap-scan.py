@@ -37,7 +37,6 @@ def debug(msg, obj):
         print "DEBUG: {0} {1}\n".format(msg, pprint(obj))
 
 def run_nmap(net):
-    print("Running network scan for network {}".format(net))
     try:
         out = subprocess.check_output(["nmap", "-oX", "-" , "-R", "-p", "22-443", "-sV" , net])
     except CalledProcessError:
@@ -66,7 +65,7 @@ def parsexml(f):
             if debug:
                 print("Run SNMPGET for {}".format(_ipaddress))
                 varBind = snmpget(_ipaddress)
-      hostname = host.find("./hostnames/hostname").get('name') if ET.iselement(host.find("./hostnames/hostname")) else _ipaddress
+      hostname = host.find("./hostnames/hostname").get('name') if ET.iselement(host.find("./hostnames/hostname")) else _ipaskey
       # Per Host
       _host[_ipaskey] = { '_id': _ipaskey, 'name': hostname, 'ip': _ipaddress, 'mac': _macaddress, 'vendor': _vendor}
       _services = {}
@@ -143,6 +142,7 @@ def print_hosts(collection):
 
 
 def print_ansible(collection):
+  print "[hosts]"
   for i in collection:
     print "%s\tansible_ssh_user=%s\tansible_ssh_pass=%s" % (i, 'root', '#password#')       
 
