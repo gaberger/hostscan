@@ -38,7 +38,7 @@ def debug(msg, obj):
 
 def run_nmap(net):
     try:
-        out = subprocess.check_output(["nmap", "-oX", "-" , "-R", "-p", "22-443", "-sV" , net])
+        out = subprocess.check_output(["masscan", "-oX", "-", "-p22", net])
     except CalledProcessError:
         print("Error in caller\n")
         exit(1)
@@ -85,19 +85,20 @@ def parsexml(f):
                   if ET.iselement(port.find("./script/[@id='ssl-cert']/table/[@key='subject']/elem/[@key='organizationName']")) else None
                 _service = {'protocol'            :  port.get("protocol"),
                                'portid'           :  port.get("portid"),
-                               'product'          :  service.get("product"),
+                               'product'          :  service.get("product", "no-product"),
                                'service_name'     :  service.get("name"),
                                'ssl_cn'           :  common_name,
                                'ssl_orgname'      :  orgname,
                                'ssl_valid'        :  valid_after,}
-              else: 
-                _service =    {'protocol'        :  port.get("protocol"),
-                               'portid'           :  port.get("portid"),
-                               'product'          :  service.get("product"),
-                               'service_name'     :  service.get("name"),}
+              else:
+		if service is not None: 
+                   _service =    {'protocol'        :  port.get("protocol"),
+                                  'portid'           :  port.get("portid"),
+                                  'product'          :  service.get("product", "no-product"),
+                                  'service_name'     :  service.get("name"),}
 
-              if port.get("portid") not in _services.values():
-                  _services.setdefault('services',[]).append(_service)
+                   if port.get("portid") not in _services.values():
+                       _services.setdefault('services',[]).append(_service)
 
 
     _host[_ipaskey].update(_services)
@@ -143,8 +144,8 @@ def print_hosts(collection):
 
 def print_ansible(collection):
   print "[hosts]"
-  for i in collection:
-    print "%s\tansible_ssh_user=%s\tansible_ssh_pass=%s" % (i, 'root', '#password#')       
+  for k,v in collection.iteritems():
+    print "%s\tansible_ssh_user=%s\tansible_ssh_pass=%s" % (v['ip'] , 'root', '#password#')       
 
 def print_raw(collection):
     pprint(collection)
